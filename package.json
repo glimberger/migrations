@@ -1,0 +1,12 @@
+{
+  "name": "migrations",
+  "version": "1.0.0",
+  "description": "Database migration tool",
+  "author": "Guillaume Limberger <glim.dev@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "grunt": "^1.0.4",
+    "grunt-shell": "^3.0.1"
+  }
+}
