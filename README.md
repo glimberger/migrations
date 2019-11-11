@@ -1,3 +1,3 @@
 # Migrations
 
-A simple migration tool for MySQL database
+A simple migration tool for MySQL database set as GruntJS task
