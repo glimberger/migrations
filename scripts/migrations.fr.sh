@@ -1,12 +1,14 @@
 #!/bin/bash
 
 readonly CURRENT_DIR=${PWD##*/}
+readonly CONTAINER_NAME=db
 readonly CONTAINER="$CURRENT_DIR"_db_1
 readonly DB=${DB:-db666}
 readonly MIG_TABLE="${MIG_TABLE:-migrations}"
 readonly MIG_DIR="${MIG_DIR:-migrations}"
 
-readonly EXP_PDW="export MYSQL_PWD=root;"
+readonly MYSQL_PWD=${MYSQL_PWD:-root}
+readonly EXP_PDW="export MYSQL_PWD=$MYSQL_PWD;"
 
 readonly ACTION=$1
 
@@ -18,10 +20,11 @@ readonly ACTION=$1
 
 echo
 
-CHECK=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -u root -D $DB -e 'SHOW tables;' | grep '$MIG_TABLE'")
+CHECK=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -u root -D $DB -e 'SHOW tables;' | grep '$MIG_TABLE'")
 if [[ ! $CHECK ]]; then
   echo "Création de la table '$MIG_TABLE'"
-  ERR=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -u root -D $DB -e 'CREATE TABLE $MIG_TABLE (version INT UNSIGNED PRIMARY KEY NOT NULL);'")
+
+  ERR=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -u root -D $DB -e 'CREATE TABLE $MIG_TABLE (version INT UNSIGNED PRIMARY KEY NOT NULL);'")
   if [[ $ERR ]]; then
     echo "$ERR"
     exit 0
@@ -86,7 +89,7 @@ elif [[ $ACTION == "create" ]]; then
 
 else
   # search for current version in db
-  VERSION=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e 'SELECT MAX(version) FROM $MIG_TABLE' | sed -n 1p")
+  VERSION=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -s -u root -D $DB -e 'SELECT MAX(version) FROM $MIG_TABLE' | sed -n 1p")
 
   # sanitize return as int
   VERSION=${VERSION//[^0-9]/}
@@ -141,7 +144,7 @@ else
     echo
 
     # execute SQL from file and persist version
-    error=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
+    error=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
 
     if [[ ! "$error" ]]; then
       echo "Migration effectuée avec succès vers la version $next_version"
@@ -178,10 +181,10 @@ else
     echo
 
     # execute SQL from file and persist version
-    error=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
+    error=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
 
     if [ ! "$error" ]; then
-      PREV_VERSION=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e 'SELECT MAX(version) FROM $MIG_TABLE' | sed -n 1p")
+      PREV_VERSION=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -s -u root -D $DB -e 'SELECT MAX(version) FROM $MIG_TABLE' | sed -n 1p")
 
       # filter int
       PREV_VERSION=${PREV_VERSION//[^0-9]/}
@@ -242,7 +245,7 @@ else
       echo
 
       # execute SQL from file and persist version
-      error=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
+      error=$(docker-compose exec -T "$CONTAINER_NAME" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
 
       if [ "$error" ]; then
         echo "Migration impossible vers la version $next_version"
