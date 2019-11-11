@@ -20,7 +20,7 @@ echo
 
 CHECK=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -u root -D $DB -e 'SHOW tables;' | grep '$MIG_TABLE'")
 if [[ ! $CHECK ]]; then
-  echo "Creating table '$MIG_TABLE'"
+  echo "Création de la table '$MIG_TABLE'"
   ERR=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -u root -D $DB -e 'CREATE TABLE $MIG_TABLE (version INT UNSIGNED PRIMARY KEY NOT NULL);'")
   if [[ $ERR ]]; then
     echo "$ERR"
@@ -29,17 +29,17 @@ if [[ ! $CHECK ]]; then
 fi
 
 if [[ ! -d $MIG_DIR ]]; then
-  echo "Creating folder '$MIG_DIR'"
+  echo "Création du dossier '$MIG_DIR'"
   mkdir "./$MIG_DIR"
 fi
 
 if [[ ! -d $MIG_DIR"/up" ]]; then
-  echo "Creating folder '$MIG_DIR/up'"
+  echo "Création du dossier '$MIG_DIR/up'"
   mkdir "./$MIG_DIR/up"
 fi
 
 if [[ ! -d $MIG_DIR"/down" ]]; then
-  echo "Creating folder '$MIG_DIR/down'"
+  echo "Création du dossier '$MIG_DIR/down'"
   mkdir "./$MIG_DIR/down"
 fi
 
@@ -49,7 +49,7 @@ echo
 # init ACTION
 
 if [[ $ACTION == "init" ]]; then
-  echo "Initialization completed"
+  echo "Initialisation terminée"
   exit 0
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -75,9 +75,9 @@ elif [[ $ACTION == "create" ]]; then
   echo "-- Version $NEW_VERSION - UP" >>"$UP_FILE"
   echo "-- Version $NEW_VERSION - DOWN" >>"$DOWN_FILE"
 
-  echo "New version: $NEW_VERSION 🥳"
+  echo "Nouvelle version: $NEW_VERSION 🥳"
   echo
-  echo "SQL files (to be filled in):"
+  echo "Fichiers SQL (à remplir):"
   echo "    $UP_FILE"
   echo "    $DOWN_FILE"
   exit 0
@@ -120,11 +120,11 @@ else
     done
 
     if [[ $next_version -eq $CURRENT_VERSION ]]; then
-      echo "Up-to-date migrations 😎"
+      echo "Migrations à jour 😎"
       exit 0
     fi
 
-    echo "Upgrade to version: $next_version"
+    echo "Montée vers la version: $next_version"
     echo
 
     readonly SQL_UP_FILE="$MIG_DIR/$ACTION/$next_version.sql"
@@ -144,10 +144,10 @@ else
     error=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
 
     if [[ ! "$error" ]]; then
-      echo "Successful migration to version $next_version"
+      echo "Migration effectuée avec succès vers la version $next_version"
       exit 0
     else
-      echo "Migration to $next_version version has failed"
+      echo "La migration vers la version $next_version a échoué"
       echo "$error"
       exit 0
     fi
@@ -160,7 +160,7 @@ else
   elif [[ $ACTION == "down" ]]; then
 
     if [ "$CURRENT_VERSION" -eq 0 ]; then
-      echo "No migration available 🤨"
+      echo "Aucune migration disponible 🤨"
       exit 0
     fi
 
@@ -186,10 +186,10 @@ else
       # filter int
       PREV_VERSION=${PREV_VERSION//[^0-9]/}
 
-      echo "Downgraded migration successfully completed to version ${PREV_VERSION:-0}"
+      echo "Migration inverse effectuée avec succès vers la version ${PREV_VERSION:-0}"
       exit 0
     else
-      echo "Migration failure"
+      echo "Echec de la migration"
       echo "$error"
       exit 0
     fi
@@ -245,7 +245,7 @@ else
       error=$(docker exec -t "$CONTAINER" bash -c "$EXP_PDW mysql -s -u root -D $DB -e '$TRANSACTION'")
 
       if [ "$error" ]; then
-        echo "Unable to migrate to version $next_version"
+        echo "Migration impossible vers la version $next_version"
         echo "$error"
         exit 0
       fi
@@ -255,17 +255,17 @@ else
     done
 
     if [ "$next_version" == "$CURRENT_VERSION" ]; then
-      echo "...up-to-date 😎"
+      echo "...à jour 😎"
       exit 0
     fi
 
-    echo "...completed"
+    echo "...terminée"
     exit 0
 
 # ----------------------------------------------------------------------------------------------------------------------
 
   else
-    echo "Action not recognized"
+    echo "Action non reconnue"
     exit 0
   fi
 
